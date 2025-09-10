@@ -1,11 +1,11 @@
 {
-    "name": "PraiseTV Social Media",
+    "name": "PraiseTV Social Media - A Voice of Praise mission (development)",
     "short_name": "PraiseTV",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#673AB7",
     "theme_color": "#673AB7",
-    "description": "PraiseTV Social Media Platform - Connect, Share, and Grow in Faith",
+    "description": "A Voice of Praise mission development build: PraiseTV Social Media Platform - Connect, Share, and Grow in Faith",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

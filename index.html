@@ -18,7 +18,7 @@
 
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="A new Flutter project.">
+  <meta name="description" content="A Voice of Praise mission's development - PraiseTV Social Media platform in development.">
   <meta name="referrer" content="no-referrer-when-downgrade">
   
   <!-- CORS and security headers -->
@@ -31,21 +31,56 @@
   <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="praisetvsocialmediaweb">
+  <meta name="apple-mobile-web-app-title" content="PraiseTV Social Media">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
 
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="favicon.png"/>
 
-  <title>praisetvsocialmediaweb</title>
+  <title>PraiseTV Social Media • A Voice of Praise mission (development)</title>
   <link rel="manifest" href="manifest.json">
   
   <!-- Google Sign-In -->
   <script src="https://apis.google.com/js/platform.js" async defer></script>
   <meta name="google-signin-client_id" content="656800620006-cet7al6n7j3bbkvphur5s51vdfv73hoa.apps.googleusercontent.com">
   
-  <!-- reCAPTCHA v3 -->
-  <script src="https://www.google.com/recaptcha/api.js?render=6Lfeu4YrAAAAAPcwW6PgXGICkCv-38ONv5h6PgDn"></script>
+  <!-- reCAPTCHA v3 loader: script will be appended with ?render=SITE_KEY when Flutter sets window.reCaptchaSiteKey -->
+  <script>
+    // Wait for Flutter (or other code) to set window.reCaptchaSiteKey, then load the v3 script with ?render=SITE_KEY
+    (function(){
+      var attempts = 0;
+      var poll = setInterval(function(){
+        attempts++;
+        try{
+          var key = window.reCaptchaSiteKey || null;
+          if(key){
+            // Avoid adding twice
+            if(!document.querySelector('script[data-recaptcha-loader]')){
+              var s = document.createElement('script');
+              s.src = 'https://www.google.com/recaptcha/api.js?render=' + encodeURIComponent(key);
+              s.async = true;
+              s.defer = true;
+              s.setAttribute('data-recaptcha-loader', '1');
+              s.setAttribute('data-sitekey', key);
+              s.onload = function(){
+                try{ console.info('reCAPTCHA v3 script loaded for', key); }catch(e){}
+              };
+              s.onerror = function(e){ try{ console.error('Failed to load reCAPTCHA script', e); }catch(e){} };
+              document.head.appendChild(s);
+            }
+            clearInterval(poll);
+            return;
+          }
+          if(attempts > 80){ // ~20s timeout
+            clearInterval(poll);
+            try{ console.warn('reCAPTCHA loader timed out waiting for reCaptchaSiteKey'); }catch(e){}
+          }
+        }catch(e){
+          clearInterval(poll);
+        }
+      }, 250);
+    }());
+  </script>
   
   <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
@@ -54,5 +89,190 @@
 </head>
 <body>
   <script src="flutter_bootstrap.js" async></script>
+
+  <!-- Animated Praise Tv loader shown while reCAPTCHA initializes -->
+  <style>
+    /* Overlay */
+    #recaptcha-overlay {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0,0,0,0.55);
+      z-index: 999999;
+      -webkit-font-smoothing: antialiased;
+    }
+    .praise-loading {
+      color: #fff;
+      font-weight: 700;
+      font-family: 'BalooThambi2', Roboto, Arial, sans-serif;
+      font-size: 28px;
+      letter-spacing: 2px;
+      display: inline-flex;
+      gap: 6px;
+      align-items: flex-end;
+    }
+    .praise-loading span {
+      display: inline-block;
+      transform-origin: center bottom;
+      animation: wave 900ms ease-in-out infinite;
+      opacity: 0.7;
+    }
+    .praise-loading span.space { width: 8px; }
+    .praise-loading span:nth-child(1){ animation-delay: 0ms }
+    .praise-loading span:nth-child(2){ animation-delay: 80ms }
+    .praise-loading span:nth-child(3){ animation-delay: 160ms }
+    .praise-loading span:nth-child(4){ animation-delay: 240ms }
+    .praise-loading span:nth-child(5){ animation-delay: 320ms }
+    .praise-loading span:nth-child(6){ animation-delay: 400ms }
+    .praise-loading span:nth-child(7){ animation-delay: 480ms }
+    .praise-loading span:nth-child(8){ animation-delay: 560ms }
+    .praise-loading span:nth-child(9){ animation-delay: 640ms }
+
+    @keyframes wave {
+      0% { transform: translateY(0) scaleY(1); opacity: 0.6 }
+      50% { transform: translateY(-8px) scaleY(1.05); opacity: 1 }
+      100% { transform: translateY(0) scaleY(1); opacity: 0.6 }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .praise-loading span { animation: none !important; }
+    }
+  </style>
+
+  <!-- reCAPTCHA badge tweaks: make the badge very small but expand on hover so it's still usable.
+       Do not remove the badge entirely unless you understand Google's requirements. -->
+  <style>
+    /* Keep the badge tiny but prevent it from being clipped; allow expansion on hover. */
+    .grecaptcha-badge {
+      transform: scale(0.36);
+      /* move the badge to the bottom-left corner and use that as the transform origin
+         so the expand-on-hover animation grows toward the right */
+      transform-origin: bottom left;
+      left: 6px !important;
+      bottom: 6px !important;
+      z-index: 2147483647 !important; /* ensure it's above most UI */
+      opacity: 0.6;
+      transition: transform 180ms ease, opacity 160ms ease;
+      pointer-events: auto;
+      overflow: visible !important; /* prevent clipping of child iframe */
+      padding: 2px 4px !important; /* give a little breathing room */
+      background: transparent !important;
+      box-shadow: none !important;
+      border: none !important;
+    }
+
+    /* Expand when the user hovers or focuses so it's clickable and visible */
+    .grecaptcha-badge:hover,
+    .grecaptcha-badge:focus-within {
+      transform: scale(1) !important;
+      opacity: 1 !important;
+    }
+
+    /* Let the iframe size itself and avoid applying transforms to it which can cause rendering artifacts */
+    .grecaptcha-badge iframe {
+      width: auto !important;
+      height: auto !important;
+      min-width: 24px !important;
+      min-height: 24px !important;
+      transform: none !important;
+      margin: 0 !important;
+      display: block !important;
+    }
+
+    /* Slightly larger on very small screens while still subtle */
+    @media (max-width: 480px) {
+      .grecaptcha-badge { transform: scale(0.32); left: 5px !important; bottom: 5px !important; }
+    }
+
+    /* If you truly want to hide it (not recommended), uncomment below: */
+    /* .grecaptcha-badge { display: none !important; } */
+  </style>
+
+  <div id="recaptcha-overlay" role="status" aria-live="polite">
+    <div class="praise-loading" aria-hidden="false">
+      <span>P</span>
+      <span>r</span>
+      <span>a</span>
+      <span>i</span>
+      <span>s</span>
+      <span>e</span>
+      <span class="space">&nbsp;</span>
+      <span>T</span>
+      <span>v</span>
+    </div>
+  </div>
+
+  <script>
+    // Hide the overlay when grecaptcha signals ready. Fallback: hide after ~10s.
+    (function(){
+      function hideRecaptchaOverlay(){
+        try{
+          var el = document.getElementById('recaptcha-overlay');
+          if(!el) return;
+          el.style.transition = 'opacity 280ms ease-out';
+          el.style.opacity = '0';
+          setTimeout(function(){ if(el && el.parentNode) el.parentNode.removeChild(el); }, 350);
+        }catch(e){}
+      }
+
+      try{
+        // Prefer v3 ready (grecaptcha.ready)
+        if(window.grecaptcha && typeof window.grecaptcha.ready === 'function'){
+          grecaptcha.ready(function(){ hideRecaptchaOverlay(); });
+        } else {
+          var attempts = 0;
+          var poll = setInterval(function(){
+            attempts++;
+            if(window.grecaptcha && typeof window.grecaptcha.ready === 'function'){
+              clearInterval(poll);
+              grecaptcha.ready(function(){ hideRecaptchaOverlay(); });
+            } else if(attempts > 40){ // ~10s
+              clearInterval(poll);
+              hideRecaptchaOverlay();
+            }
+          }, 250);
+        }
+      } catch (e){
+        // Ensure overlay will not block forever
+        setTimeout(hideRecaptchaOverlay, 10000);
+      }
+    }());
+  </script>
+
+  <script>
+    // JS bridge for Flutter web to request a reCAPTCHA v3 token.
+    // Usage from Dart: call `window.getReCaptchaToken(action, siteKey)` which returns a Promise<string>.
+    // If siteKey is not provided the bridge will try `window.reCaptchaSiteKey` as fallback.
+    window.getReCaptchaToken = function(action, siteKey){
+      return new Promise(function(resolve, reject){
+        try{
+          var key = siteKey || window.reCaptchaSiteKey || null;
+          if(!key){
+            reject(new Error('siteKey missing'));
+            return;
+          }
+          if(window.grecaptcha && typeof window.grecaptcha.execute === 'function'){
+            // v3 API
+            grecaptcha.ready(function(){
+              grecaptcha.execute(key, {action: action}).then(function(token){
+                resolve(token);
+              }).catch(function(err){
+                reject(err);
+              });
+            });
+          } else {
+            reject(new Error('grecaptcha not available'));
+          }
+        } catch(e){ reject(e); }
+      });
+    };
+
+    // NOTE: Do NOT call the ReCAPTCHA Enterprise Assessments API from client-side code with an API key.
+    // Instead, send the token to a trusted server endpoint and perform the assessment there using
+    // the service account / server API key. Example request body (server-side):
+    // { "event": { "token": "TOKEN", "expectedAction": "USER_ACTION", "siteKey": "SITE_KEY" } }
+  </script>
 </body>
 </html>
